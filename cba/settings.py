@@ -18,11 +18,10 @@ CONCURRENT_REQUESTS_PER_DOMAIN = 1
 
 COOKIES_ENABLED = False
 
-# deprecated
-# DATABASE = {
-#     'drivername': 'sqlite',
-#     'database': 'data/cba.sqlite'
-# }
+DATABASE = {
+    'drivername': 'sqlite',
+    'database': 'data/cba.sqlite'
+}
 
 ITEM_PIPELINES = {
     'cba.pipelines.SQLitePipeline': 300
