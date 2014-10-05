@@ -20,7 +20,7 @@ COOKIES_ENABLED = False
 
 DATABASE = {
     'drivername': 'sqlite',
-    'database': 'data/cba.sqlite'
+    'database': 'data/cbalib.sqlite'
 }
 
 ITEM_PIPELINES = {
