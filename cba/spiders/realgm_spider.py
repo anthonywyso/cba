@@ -5,6 +5,7 @@ from scrapy.selector import Selector
 from scrapy.contrib.linkextractors.lxmlhtml import LxmlParserLinkExtractor
 from scrapy.contrib.spiders import CrawlSpider, Rule
 import sqlite3 as sql
+import re
 
 from cba.items import create_item_class, BasicItemLoader
 import cba.settings as settings
@@ -35,7 +36,7 @@ def create_crawl_urls():
     cba_years = range(2012, 2015)
     page_sets = range(1, 10)
     player_urls = ["".join(["http://basketball.realgm.com/international/league/40/Chinese-CBA/stats/", str(year), "/", stat_type,"/All/All/player/All/asc/", str(page), "/Regular_Season"]) for stat_type in stat_types for year in cba_years for page in page_sets]
-    team_urls = ["".join(["http://basketball.realgm.com/international/league/40/Chinese-CBA/stats_team/", str(year), "/", stat_type, "/Team_Totals"]) for stat_type in stat_types for year in cba_years]
+    team_urls = ["".join(["http://basketball.realgm.com/international/league/40/Chinese-CBA/stats_team/", str(year), "/", stat_type, "/Team_Totals/team_name/asc/"]) for stat_type in stat_types for year in cba_years]
     return player_urls + team_urls
 
 
@@ -48,9 +49,26 @@ def extract_table_name(table_header):
     url = str(table_header.xpath('a/@href')[0].extract()).lower()
     keywords = set(url.split('/'))
     stat_class = keywords.intersection(set(['player', 'team_totals'])).pop()
-    stat_types = keywords.intersection(set(['totals', 'misc_stats', 'advanced_stats'])).pop()
-    stat_types = stat_types.split('_').pop()
-    return "_".join([stat_class, 'season', stat_types])
+    stat_class = stat_class.split('_')[0]
+    stat_type = keywords.intersection(set(['totals', 'misc_stats', 'advanced_stats'])).pop()
+    stat_type = stat_type.split('_')[0]
+    return "_".join([stat_class, 'season', stat_type])
+
+
+def clean_values(feature):
+    '''
+    INPUT: string
+    OUTPUT: string
+    Formats feature values so they can be used in sqlite schema
+    '''
+    feature = feature.replace('%', 'pct') # cleans feature formats
+    feature = feature.replace('3p', 'fg3')
+    feature = feature.replace(' ', '_')
+    feature = feature.replace('/', '_')
+    feature = feature.replace("'s", '')
+    if re.match('\d', feature):
+        feature = "_" + feature
+    return feature
 
 
 class RealGMSpider(Spider):
@@ -65,15 +83,15 @@ class RealGMSpider(Spider):
         table_header = sel.xpath('//thead/tr/th')
         table_rows = sel.xpath("//table[@class='filtered']/tbody/tr")
 
-        # extract table features
+        # extract and clean table features
         features = ['season']
         for col in table_header:
             if col.xpath('a'):
                 feature = col.xpath('a/text()').extract()
             else:
                 feature = col.xpath('text()').extract()
-            feature = str(feature[0]).lower().replace('%', 'pct') #takes 1st value out of list, format style
-            feature = feature.replace('3p', 'fg3')
+            feature = str(feature[0]).lower() # takes 1st value out of list
+            feature = clean_values(feature)
             features.append(feature)
 
         # build dynamic sql table name
