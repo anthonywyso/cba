@@ -20,15 +20,16 @@ COOKIES_ENABLED = False
 
 DATABASE = {
     'drivername': 'sqlite',
-    'database': 'data/cbascrape.sqlite'
+    'database': 'data/cba.sqlite',
+    'database_read': 'data/cba.sqlite'
 }
 
 ITEM_PIPELINES = {
     'cba.pipelines.SQLitePipeline': 300
 }
 
-HTTPCACHE_ENABLED = True
-HTTPCACHE_EXPIRATION_SECS = 0 # Set to 0 to never expire
+# HTTPCACHE_ENABLED = True
+# HTTPCACHE_EXPIRATION_SECS = 0 # Set to 0 to never expire
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'cba (+http://www.yourdomain.com)'

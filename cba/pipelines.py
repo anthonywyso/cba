@@ -30,7 +30,8 @@ class SQLitePipeline(object):
         """
         features = item.keys()
         data = {feature: item[feature] for feature in features}
-        data.pop('#')
+        if '#' in features:
+            data.pop('#')
         df = pd.DataFrame(data=data, index=np.arange(1))
 
         with sql.connect(self.db) as connection:
